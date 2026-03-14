@@ -1,0 +1,58 @@
+name: Deploy Frontend to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-deploy.yaml"
+      - "frontend/.github/workflows/deploy.yaml"
+  workflow_dispatch:
+
+env:
+  APP_DIR: frontend
+  IMAGE_NAME: ${{ vars.FRONTEND_IMAGE_NAME }}
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+  DEPLOYMENT: ${{ vars.FRONTEND_K8S_DEPLOYMENT }}
+  NAMESPACE: ${{ vars.FRONTEND_K8S_NAMESPACE }}
+  CONTAINERNAME: ${{ vars.FRONTEND_K8S_CONTAINER }}
+  NEXT_PUBLIC_API_URL: ${{ vars.FRONTEND_NEXT_PUBLIC_API_URL }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      CURRENT_DATE: ${{ github.run_id }}
+      IMAGE_TAG: ${{ github.run_id }}_${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build and push Docker image
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          echo "Building image with tag $DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG"
+          docker build "$APP_DIR" \
+            -t "$DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG" \
+            -t "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest" \
+            --build-arg BUILD_DATE="$CURRENT_DATE" \
+            --build-arg COMMIT_HASH="$COMMIT_HASH" \
+            --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL"
+          echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG"
+          docker push "$DOCKERHUB_USERNAME/$IMAGE_NAME:latest"
+
+      - name: Update Kubernetes deployment
+        run: |
+          echo "$KUBE_CONFIG_DATA" | base64 -d > kubeconfig.yaml
+          echo "Using image tag: $IMAGE_TAG"
+          export KUBECONFIG=$PWD/kubeconfig.yaml
+          kubectl config get-contexts
+          kubectl config use-context default
+          kubectl set image -n "$NAMESPACE" deployment/"$DEPLOYMENT" "$CONTAINERNAME"="$DOCKERHUB_USERNAME/$IMAGE_NAME:$IMAGE_TAG"
+          kubectl -n "$NAMESPACE" rollout restart deployment/"$DEPLOYMENT"
