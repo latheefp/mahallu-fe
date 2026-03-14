@@ -1,13 +1,19 @@
 name: Deploy Frontend to Kubernetes
 
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - "*"
+#       - ".github/workflows/deploy.yaml"
+#   workflow_dispatch:
+
 on:
   push:
     branches:
-      - main
-    paths:
-      - "*"
-      - ".github/workflows/deploy.yaml"
-  workflow_dispatch:
+      - main  # Adjust for your primary branch
+  workflow_dispatch:      
 
 env:
   APP_DIR: .
