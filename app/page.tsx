@@ -129,10 +129,10 @@ export default function HomePage() {
       <section className="bg-white border-b border-gray-200 py-6">
         <div className="container-custom">
           <div className="grid md:grid-cols-4 gap-6 text-center">
-            <InfoStat icon={Users} value={mahalluInfo?.active_families ?? mahalluInfo?.total_families || 0} label="Families" delay={0} />
-            <InfoStat icon={Users} value={mahalluInfo?.active_members ?? mahalluInfo?.total_members || 0} label="Members" delay={0.1} />
-            <InfoStat icon={Calendar} value={mahalluInfo?.established_year || 'N/A'} label="Established" delay={0.2} />
-            <InfoStat icon={Star} value={new Date().getFullYear() - (mahalluInfo?.established_year || new Date().getFullYear())} label="Years of Service" delay={0.3} />
+            <InfoStat icon={Users} value={mahalluInfo?.active_families ?? mahalluInfo?.total_families ?? 0} label="Families" delay={0} />
+            <InfoStat icon={Users} value={mahalluInfo?.active_members ?? mahalluInfo?.total_members ?? 0} label="Members" delay={0.1} />
+            <InfoStat icon={Calendar} value={mahalluInfo?.established_year ?? 'N/A'} label="Established" delay={0.2} />
+            <InfoStat icon={Star} value={new Date().getFullYear() - (mahalluInfo?.established_year ?? new Date().getFullYear())} label="Years of Service" delay={0.3} />
           </div>
         </div>
       </section>
