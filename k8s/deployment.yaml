@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mahallu-fe
+  namespace: mahallu
+  labels:
+    workload.user.cattle.io/workloadselector: apps.deployment-mahallu-mahallu
+  annotations:
+    deployment.kubernetes.io/revision: '131'
+  selfLink: /apis/apps/v1/namespaces/mahallu/deployments/mahallu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: apps.deployment-mahallu-mahallu
+  template:
+    metadata:
+      name: mahallu
+      namespace: mahallu
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: apps.deployment-mahallu-fe
+    spec:
+      volumes:
+        - name: vol-piy2j
+          secret:
+            secretName: cm-makham-secret
+            defaultMode: 420
+      containers:
+        - name: mahallu
+          image: >-
+            latheefp/mahallu:23084642927_86fd36541af09785bccdf0894765e09d4903f0d9
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          securityContext:
+            privileged: false
+            runAsNonRoot: false
+            readOnlyRootFilesystem: false
+            allowPrivilegeEscalation: false
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

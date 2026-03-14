@@ -58,12 +58,14 @@ jobs:
           docker push "$IMAGE_REPO:$IMAGE_TAG"
           docker push "$IMAGE_REPO:latest"
 
-      - name: Update Kubernetes deployment
+      - name: Apply Kubernetes deployment
         run: |
           echo "$KUBE_CONFIG_DATA" | base64 -d > kubeconfig.yaml
           echo "Using image tag: $IMAGE_TAG"
           export KUBECONFIG=$PWD/kubeconfig.yaml
+          IMAGE_REF="$IMAGE_REPO:$IMAGE_TAG"
           kubectl config get-contexts
           kubectl config use-context default
-          kubectl set image -n "$NAMESPACE" deployment/"$DEPLOYMENT" "$CONTAINERNAME"="$IMAGE_REPO:$IMAGE_TAG"
-          kubectl -n "$NAMESPACE" rollout restart deployment/"$DEPLOYMENT"
+          sed "s|image:.*|          image: ${IMAGE_REF}|" k8s/deployment.yaml > k8s/deployment.rendered.yaml
+          kubectl apply -f k8s/deployment.rendered.yaml
+          kubectl -n "$NAMESPACE" rollout status deployment/"$DEPLOYMENT"
