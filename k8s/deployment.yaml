@@ -4,22 +4,16 @@ metadata:
   name: mahallu-fe
   namespace: mahallu
   labels:
-    workload.user.cattle.io/workloadselector: apps.deployment-mahallu-mahallu
-  annotations:
-    deployment.kubernetes.io/revision: '131'
-  selfLink: /apis/apps/v1/namespaces/mahallu/deployments/mahallu
+    app: mahallu-fe
 spec:
   replicas: 1
   selector:
     matchLabels:
-      workload.user.cattle.io/workloadselector: apps.deployment-mahallu-mahallu
+      app: mahallu-fe
   template:
     metadata:
-      name: mahallu
-      namespace: mahallu
-      creationTimestamp: null
       labels:
-        workload.user.cattle.io/workloadselector: apps.deployment-mahallu-fe
+        app: mahallu-fe
     spec:
       volumes:
         - name: vol-piy2j
@@ -27,12 +21,11 @@ spec:
             secretName: cm-makham-secret
             defaultMode: 420
       containers:
-        - name: mahallu
-          image: >-
-            latheefp/mahallu:23084642927_86fd36541af09785bccdf0894765e09d4903f0d9
+        - name: mahallu-fe
+          image: latheefp/mahallu-fe:latest
           ports:
             - name: http
-              containerPort: 80
+              containerPort: 3000
               protocol: TCP
           resources: {}
           terminationMessagePath: /dev/termination-log
