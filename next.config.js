@@ -1,0 +1,22 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  
+  // Enable standalone output for Docker
+  output: 'standalone',
+  
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://services.mahallu.com/api',
+  },
+  
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: (process.env.NEXT_PUBLIC_API_URL || 'https://services.mahallu.com/api') + '/:path*',
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;

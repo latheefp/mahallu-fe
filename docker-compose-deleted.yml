@@ -1,0 +1,42 @@
+version: '3.8'
+services:
+  mahallu-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${BACKEND_API_URL:-https://services.mahallu.com/api}
+    image: mahallu-frontend:latest
+    container_name: mahallu-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      # Backend API URL (can be overridden in .env file)
+      - NEXT_PUBLIC_API_URL=${BACKEND_API_URL:-https://services.mahallu.com/api}
+      
+      # Node environment
+      - NODE_ENV=production
+      
+      # Optional: Add more environment variables here
+      # - NEXT_PUBLIC_SITE_URL=${SITE_URL:-http://localhost:3000}
+    restart: unless-stopped
+    networks:
+      - infratool
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.mahallu.description=Mahallu Management Frontend"
+      - "com.mahallu.version=2.0"
+
+networks:
+  infratool:
+    external: true
+
+# Optional: Add volumes if you need to persist data
+# volumes:
+#   mahallu-uploads:
+#     driver: local
